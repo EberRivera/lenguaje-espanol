@@ -145,7 +145,17 @@
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+#line 19 "espanol.y"
+{
+    int entero;
+    double decimal;
+    char* cadena;
+    Nodo* nodo;
+}
+/* Line 1529 of yacc.c.  */
+#line 158 "espanol.tab.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

@@ -2,13 +2,26 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "tabla.h"
+#include "ast.h"
+#include "eval.h"
 
 extern int num_linea;
 extern FILE *yyin;
 
 void yyerror(const char *s);
 int yylex();
+
+TipoDato tipo_actual;
 %}
+
+%union {
+    int entero;
+    double decimal;
+    char* cadena;
+    Nodo* nodo;
+}
 
 %token BOLEANO DECIMAL VERDADERO FALSO CARACTER ENTERO DOBLE CONSTANTE
 %token CASOS DEFECTO CASO PARAR PARA HACER MIENTRAS RETORNAR
@@ -18,25 +31,41 @@ int yylex();
 %token MAYOR MENOR MAYORIGUAL MENORIGUAL
 %token LPAREN RPAREN LLAVE_A LLAVE_C CORCHETE_A CORCHETE_C
 %token COMA PUNTOCOMA DOSPUNTOS
-%token NUM_ENTERO NUM_DECIMAL CADENA CARACTER_LIT ID
+%token <entero> NUM_ENTERO
+%token <decimal> NUM_DECIMAL
+%token <cadena> CADENA CARACTER_LIT ID
+
+%type <nodo> programa sentencias sentencia
+%type <nodo> declaracion asignacion
+%type <nodo> sentencia_si sentencia_mientras sentencia_hacer
+%type <nodo> sentencia_imprimir sentencia_retornar
+%type <nodo> expresion termino factor condicion
+%type <nodo> params_imprimir llamada_funcion argumentos
+%type <nodo> inicio lista_funciones definicion_funcion
 
 %%
 
 inicio:
     lista_funciones programa
+    {
+        ejecutar($2);
+    }
     | programa
+    {
+        ejecutar($1);
+    }
 ;
 
 lista_funciones:
-    lista_funciones definicion_funcion
-    | definicion_funcion
+    lista_funciones definicion_funcion  { $$ = $1; }
+    | definicion_funcion                { $$ = $1; }
 ;
 
 definicion_funcion:
-    tipo ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C
-    | tipo ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C
-    | ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C
-    | ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C
+    tipo ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C  { $$ = NULL; }
+    | tipo ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C                 { $$ = NULL; }
+    | ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C     { $$ = NULL; }
+    | ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C                      { $$ = NULL; }
 ;
 
 lista_parametros:
@@ -50,38 +79,63 @@ parametro:
 
 programa:
     PROGRAMA ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        Nodo* n = crear_nodo(NODO_PROGRAMA);
+        n->izq = $6;
+        $$ = n;
+    }
 ;
 
 sentencias:
     sentencias sentencia
+    {
+        $$ = agregar_sentencia($1, $2);
+    }
     | sentencia
+    {
+        $$ = $1;
+    }
 ;
 
 sentencia:
-    declaracion
-    | asignacion
-    | sentencia_si
-    | sentencia_mientras
-    | sentencia_hacer
-    | sentencia_casos
-    | sentencia_para
-    | sentencia_imprimir
-    | sentencia_retornar
-    | llamada_funcion PUNTOCOMA
+    declaracion        { $$ = $1; }
+    | asignacion       { $$ = $1; }
+    | sentencia_si     { $$ = $1; }
+    | sentencia_mientras { $$ = $1; }
+    | sentencia_hacer  { $$ = $1; }
+    | sentencia_imprimir { $$ = $1; }
+    | sentencia_retornar { $$ = $1; }
+    | llamada_funcion PUNTOCOMA { $$ = $1; }
 ;
 
 declaracion:
     tipo ID PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_DECLARACION);
+        n->valor_cadena = strdup($2);
+        $$ = n;
+    }
     | tipo ID CORCHETE_A dimensiones CORCHETE_C PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_DECLARACION);
+        n->valor_cadena = strdup($2);
+        $$ = n;
+    }
     | CONSTANTE tipo ID ASIGN expresion PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_ASIGNACION);
+        n->valor_cadena = strdup($3);
+        n->der = $5;
+        $$ = n;
+    }
 ;
 
 tipo:
-    ENTERO
-    | DECIMAL
-    | BOLEANO
-    | CARACTER
-    | DOBLE
+    ENTERO      { tipo_actual = TIPO_ENTERO; }
+    | DECIMAL   { tipo_actual = TIPO_DECIMAL; }
+    | BOLEANO   { tipo_actual = TIPO_BOLEANO; }
+    | CARACTER  { tipo_actual = TIPO_CARACTER; }
+    | DOBLE     { tipo_actual = TIPO_DECIMAL; }
 ;
 
 dimensiones:
@@ -91,105 +145,158 @@ dimensiones:
 
 asignacion:
     ID ASIGN expresion PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_ASIGNACION);
+        n->valor_cadena = strdup($1);
+        n->der = $3;
+        $$ = n;
+    }
     | ID ASIGN INGRESAR LPAREN CADENA RPAREN PUNTOCOMA
-    | ID CORCHETE_A expresion CORCHETE_C ASIGN expresion PUNTOCOMA
-    | ID CORCHETE_A expresion CORCHETE_C ASIGN INGRESAR LPAREN CADENA RPAREN PUNTOCOMA
+    {
+        Nodo* ing = crear_nodo(NODO_INGRESAR);
+        ing->izq = nodo_cadena($5);
+        Nodo* n = crear_nodo(NODO_ASIGNACION);
+        n->valor_cadena = strdup($1);
+        n->der = ing;
+        $$ = n;
+    }
 ;
 
 expresion:
     expresion SUMA termino
+    {
+        $$ = nodo_op(NODO_SUMA, $1, $3);
+    }
     | expresion RESTA termino
-    | expresion PUNTO expresion
-    | termino
+    {
+        $$ = nodo_op(NODO_RESTA, $1, $3);
+    }
+    | termino { $$ = $1; }
 ;
 
 termino:
     termino MULT factor
+    {
+        $$ = nodo_op(NODO_MULT, $1, $3);
+    }
     | termino DIV factor
-    | factor
+    {
+        $$ = nodo_op(NODO_DIV, $1, $3);
+    }
+    | factor { $$ = $1; }
 ;
 
 factor:
-    NUM_ENTERO
-    | NUM_DECIMAL
-    | CADENA
-    | VERDADERO
-    | FALSO
-    | ID
-    | ID CORCHETE_A expresion CORCHETE_C
-    | LPAREN expresion RPAREN
-    | llamada_funcion
+    NUM_ENTERO          { $$ = nodo_entero($1); }
+    | NUM_DECIMAL       { Nodo* n = crear_nodo(NODO_NUM_DECIMAL); n->valor_decimal = $1; $$ = n; }
+    | VERDADERO         { $$ = nodo_entero(1); }
+    | FALSO             { $$ = nodo_entero(0); }
+    | ID                { $$ = nodo_id($1); }
+    | ID CORCHETE_A expresion CORCHETE_C { $$ = nodo_id($1); }
+    | LPAREN expresion RPAREN { $$ = $2; }
+    | llamada_funcion   { $$ = $1; }
+    | CADENA            { $$ = nodo_cadena($1); }
 ;
 
 condicion:
-    expresion MAYOR expresion
-    | expresion MENOR expresion
-    | expresion MAYORIGUAL expresion
-    | expresion MENORIGUAL expresion
-    | expresion IGUAL expresion
-    | expresion DIFERENTE expresion
+    expresion MAYOR expresion       { $$ = nodo_op(NODO_MAYOR, $1, $3); }
+    | expresion MENOR expresion     { $$ = nodo_op(NODO_MENOR, $1, $3); }
+    | expresion MAYORIGUAL expresion { $$ = nodo_op(NODO_MAYORIGUAL, $1, $3); }
+    | expresion MENORIGUAL expresion { $$ = nodo_op(NODO_MENORIGUAL, $1, $3); }
+    | expresion IGUAL expresion     { $$ = nodo_op(NODO_IGUAL, $1, $3); }
+    | expresion DIFERENTE expresion { $$ = nodo_op(NODO_DIFERENTE, $1, $3); }
 ;
 
 sentencia_si:
     SI LPAREN condicion RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        Nodo* n = crear_nodo(NODO_SI);
+        n->izq = $3;
+        n->der = $6;
+        n->extra = NULL;
+        $$ = n;
+    }
     | SI LPAREN condicion RPAREN LLAVE_A sentencias LLAVE_C DELOCONTRARIO LLAVE_A sentencias LLAVE_C
+    {
+        Nodo* n = crear_nodo(NODO_SI);
+        n->izq = $3;
+        n->der = $6;
+        n->extra = $10;
+        $$ = n;
+    }
 ;
 
 sentencia_mientras:
     MIENTRAS LPAREN condicion RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        Nodo* n = crear_nodo(NODO_MIENTRAS);
+        n->izq = $3;
+        n->der = $6;
+        $$ = n;
+    }
 ;
 
 sentencia_hacer:
     HACER LLAVE_A sentencias LLAVE_C MIENTRAS LPAREN condicion RPAREN PUNTOCOMA
-;
-
-sentencia_para:
-    PARA LPAREN asignacion condicion PUNTOCOMA asignacion_simple RPAREN LLAVE_A sentencias LLAVE_C
-;
-
-asignacion_simple:
-    ID ASIGN expresion
-;
-
-sentencia_casos:
-    CASOS ID LLAVE_A lista_casos LLAVE_C
-    | CASOS ID LLAVE_A lista_casos defecto LLAVE_C
-;
-
-lista_casos:
-    lista_casos un_caso
-    | un_caso
-;
-
-un_caso:
-    CASO NUM_ENTERO DOSPUNTOS sentencias PARAR PUNTOCOMA
-;
-
-defecto:
-    DEFECTO DOSPUNTOS sentencias
+    {
+        Nodo* n = crear_nodo(NODO_HACER);
+        n->izq = $3;
+        n->der = $7;
+        $$ = n;
+    }
 ;
 
 sentencia_imprimir:
-    IMPRIMIR LPAREN lista_params RPAREN PUNTOCOMA
+    IMPRIMIR LPAREN params_imprimir RPAREN PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_IMPRIMIR);
+        n->izq = $3;
+        $$ = n;
+    }
 ;
 
-lista_params:
-    lista_params PUNTO expresion
-    | expresion
+params_imprimir:
+    params_imprimir PUNTO factor
+    {
+        Nodo* n = crear_nodo(NODO_CONCAT);
+        n->izq = $1;
+        n->der = $3;
+        $$ = n;
+    }
+    | factor { $$ = $1; }
 ;
 
 sentencia_retornar:
     RETORNAR LPAREN expresion RPAREN PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_RETORNAR);
+        n->izq = $3;
+        $$ = n;
+    }
 ;
 
 llamada_funcion:
     ID LPAREN argumentos RPAREN
+    {
+        Nodo* n = crear_nodo(NODO_LLAMADA);
+        n->valor_cadena = strdup($1);
+        n->izq = $3;
+        $$ = n;
+    }
     | ID LPAREN RPAREN
+    {
+        Nodo* n = crear_nodo(NODO_LLAMADA);
+        n->valor_cadena = strdup($1);
+        $$ = n;
+    }
 ;
 
 argumentos:
     argumentos COMA expresion
-    | expresion
+    {
+        $$ = agregar_sentencia($1, $3);
+    }
+    | expresion { $$ = $1; }
 ;
 
 %%

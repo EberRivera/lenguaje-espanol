@@ -365,10 +365,10 @@ static const flex_int16_t yy_accept[188] =
     {   0,
         0,    0,   55,   53,   52,   51,   53,   53,   53,   37,
        38,   27,   25,   43,   26,   29,   28,   47,   45,   44,
-       34,   30,   33,   50,   50,   50,   50,   41,   42,   50,
+       36,   30,   35,   50,   50,   50,   50,   41,   42,   50,
        50,   50,   50,   50,   50,   50,   50,   50,   50,   50,
-       39,   40,   32,    0,   48,    0,   49,    0,   47,   36,
-       31,   35,   50,   50,   50,   50,   50,   50,   50,   50,
+       39,   40,   32,    0,   48,    0,   49,    0,   47,   34,
+       31,   33,   50,   50,   50,   50,   50,   50,   50,   50,
        50,   50,   50,   50,   50,   50,   50,   50,   50,   50,
        18,   50,   46,   50,   50,   50,   50,   50,   50,   50,
        50,   50,   50,   50,   50,   50,   50,   50,   50,   50,
@@ -551,13 +551,16 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "espanol.l"
-#line 2 "espanol.l"
+#line 3 "espanol.l"
+#include "ast.h"
 #include "espanol.tab.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int num_linea = 1;
-#line 559 "lex.yy.c"
-#line 560 "lex.yy.c"
+#line 562 "lex.yy.c"
+#line 563 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -774,10 +777,10 @@ YY_DECL
 		}
 
 	{
-#line 8 "espanol.l"
+#line 12 "espanol.l"
 
 
-#line 780 "lex.yy.c"
+#line 783 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -836,278 +839,278 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 10 "espanol.l"
+#line 14 "espanol.l"
 { return BOLEANO; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 11 "espanol.l"
+#line 15 "espanol.l"
 { return DECIMAL; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 12 "espanol.l"
+#line 16 "espanol.l"
 { return VERDADERO; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 13 "espanol.l"
+#line 17 "espanol.l"
 { return FALSO; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 14 "espanol.l"
+#line 18 "espanol.l"
 { return CARACTER; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 15 "espanol.l"
+#line 19 "espanol.l"
 { return ENTERO; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 16 "espanol.l"
+#line 20 "espanol.l"
 { return DOBLE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 17 "espanol.l"
+#line 21 "espanol.l"
 { return CONSTANTE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 18 "espanol.l"
+#line 22 "espanol.l"
 { return CASOS; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 19 "espanol.l"
+#line 23 "espanol.l"
 { return DEFECTO; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 20 "espanol.l"
+#line 24 "espanol.l"
 { return CASO; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 21 "espanol.l"
+#line 25 "espanol.l"
 { return CASO; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 22 "espanol.l"
+#line 26 "espanol.l"
 { return PARAR; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 23 "espanol.l"
+#line 27 "espanol.l"
 { return PARA; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 24 "espanol.l"
+#line 28 "espanol.l"
 { return HACER; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 25 "espanol.l"
+#line 29 "espanol.l"
 { return MIENTRAS; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 26 "espanol.l"
+#line 30 "espanol.l"
 { return RETORNAR; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 27 "espanol.l"
+#line 31 "espanol.l"
 { return SI; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 28 "espanol.l"
+#line 32 "espanol.l"
 { return DELOCONTRARIO; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 29 "espanol.l"
+#line 33 "espanol.l"
 { return FUNCION; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 30 "espanol.l"
+#line 34 "espanol.l"
 { return PROCEDIMIENTO; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 31 "espanol.l"
+#line 35 "espanol.l"
 { return PROGRAMA; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 32 "espanol.l"
+#line 36 "espanol.l"
 { return INGRESAR; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 33 "espanol.l"
+#line 37 "espanol.l"
 { return IMPRIMIR; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 35 "espanol.l"
+#line 39 "espanol.l"
 { return SUMA; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 36 "espanol.l"
+#line 40 "espanol.l"
 { return RESTA; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 37 "espanol.l"
+#line 41 "espanol.l"
 { return MULT; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 38 "espanol.l"
+#line 42 "espanol.l"
 { return DIV; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 39 "espanol.l"
+#line 43 "espanol.l"
 { return PUNTO; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 40 "espanol.l"
+#line 44 "espanol.l"
 { return ASIGN; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 41 "espanol.l"
+#line 45 "espanol.l"
 { return IGUAL; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 42 "espanol.l"
+#line 46 "espanol.l"
 { return DIFERENTE; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 43 "espanol.l"
-{ return MAYOR; }
+#line 47 "espanol.l"
+{ return MAYORIGUAL; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 44 "espanol.l"
-{ return MENOR; }
+#line 48 "espanol.l"
+{ return MENORIGUAL; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 45 "espanol.l"
-{ return MAYORIGUAL; }
+#line 49 "espanol.l"
+{ return MAYOR; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 46 "espanol.l"
-{ return MENORIGUAL; }
+#line 50 "espanol.l"
+{ return MENOR; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 48 "espanol.l"
+#line 52 "espanol.l"
 { return LPAREN; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 49 "espanol.l"
+#line 53 "espanol.l"
 { return RPAREN; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 50 "espanol.l"
+#line 54 "espanol.l"
 { return LLAVE_A; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 51 "espanol.l"
+#line 55 "espanol.l"
 { return LLAVE_C; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 52 "espanol.l"
+#line 56 "espanol.l"
 { return CORCHETE_A; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 53 "espanol.l"
+#line 57 "espanol.l"
 { return CORCHETE_C; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 54 "espanol.l"
+#line 58 "espanol.l"
 { return COMA; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 55 "espanol.l"
+#line 59 "espanol.l"
 { return PUNTOCOMA; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 56 "espanol.l"
+#line 60 "espanol.l"
 { return DOSPUNTOS; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 58 "espanol.l"
-{ return NUM_DECIMAL; }
+#line 62 "espanol.l"
+{ yylval.decimal = atof(yytext); return NUM_DECIMAL; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 59 "espanol.l"
-{ return NUM_ENTERO; }
+#line 63 "espanol.l"
+{ yylval.entero = atoi(yytext); return NUM_ENTERO; }
 	YY_BREAK
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 60 "espanol.l"
-{ return CADENA; }
+#line 64 "espanol.l"
+{ yylval.cadena = strdup(yytext); return CADENA; }
 	YY_BREAK
 case 49:
 /* rule 49 can match eol */
 YY_RULE_SETUP
-#line 61 "espanol.l"
-{ return CARACTER_LIT; }
+#line 65 "espanol.l"
+{ yylval.cadena = strdup(yytext); return CARACTER_LIT; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 63 "espanol.l"
-{ return ID; }
+#line 67 "espanol.l"
+{ yylval.cadena = strdup(yytext); return ID; }
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 65 "espanol.l"
+#line 69 "espanol.l"
 { num_linea++; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 66 "espanol.l"
-{ /* ignorar espacios */ }
+#line 70 "espanol.l"
+{ }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 68 "espanol.l"
-{ printf("Error lexico en linea %d: caracter no reconocido '%s'\n", num_linea, yytext); }
+#line 72 "espanol.l"
+{ printf("\033[1;31mError lexico en linea %d: caracter no reconocido '%s'\033[0m\n", num_linea, yytext); }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 70 "espanol.l"
+#line 74 "espanol.l"
 ECHO;
 	YY_BREAK
-#line 1110 "lex.yy.c"
+#line 1113 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2112,7 +2115,8 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 70 "espanol.l"
+#line 74 "espanol.l"
 
 
 int yywrap() { return 1; }
+

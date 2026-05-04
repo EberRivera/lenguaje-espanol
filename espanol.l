@@ -1,6 +1,10 @@
+
 %{
+#include "ast.h"
 #include "espanol.tab.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int num_linea = 1;
 %}
@@ -40,10 +44,10 @@ int num_linea = 1;
 "="   { return ASIGN; }
 "=="  { return IGUAL; }
 "!="  { return DIFERENTE; }
-">"   { return MAYOR; }
-"<"   { return MENOR; }
 ">="  { return MAYORIGUAL; }
 "<="  { return MENORIGUAL; }
+">"   { return MAYOR; }
+"<"   { return MENOR; }
 
 "("   { return LPAREN; }
 ")"   { return RPAREN; }
@@ -55,17 +59,17 @@ int num_linea = 1;
 ";"   { return PUNTOCOMA; }
 ":"   { return DOSPUNTOS; }
 
-[0-9]+\.[0-9]+         { return NUM_DECIMAL; }
-[0-9]+                 { return NUM_ENTERO; }
-\"[^\"]*\"             { return CADENA; }
-\'[^\']*\'             { return CARACTER_LIT; }
+[0-9]+\.[0-9]+  { yylval.decimal = atof(yytext); return NUM_DECIMAL; }
+[0-9]+          { yylval.entero = atoi(yytext); return NUM_ENTERO; }
+\"[^\"]*\"      { yylval.cadena = strdup(yytext); return CADENA; }
+\'[^\']*\'      { yylval.cadena = strdup(yytext); return CARACTER_LIT; }
 
-[a-zA-Z_][a-zA-Z0-9_]* { return ID; }
+[a-zA-Z_][a-zA-Z0-9_]*  { yylval.cadena = strdup(yytext); return ID; }
 
 \n        { num_linea++; }
-[ \t\r]   { /* ignorar espacios */ }
+[ \t\r]   { }
 
-.  { printf("Error lexico en linea %d: caracter no reconocido '%s'\n", num_linea, yytext); }
+.  { printf("\033[1;31mError lexico en linea %d: caracter no reconocido '%s'\033[0m\n", num_linea, yytext); }
 
 %%
 
