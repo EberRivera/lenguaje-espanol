@@ -14,6 +14,7 @@ void yyerror(const char *s);
 int yylex();
 
 TipoDato tipo_actual;
+int num_errores = 0;
 %}
 
 %union {
@@ -302,6 +303,7 @@ argumentos:
 %%
 
 void yyerror(const char *s) {
+    num_errores++;
     printf("\033[1;31mError sintactico en linea %d: %s\033[0m\n", num_linea, s);
 }
 
@@ -323,8 +325,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (yyparse() == 0) {
+    if (yyparse() == 0 && num_errores == 0) {
         printf("\n\033[1;32mCompilacion exitosa. Sin errores.\033[0m\n");
+    } else if (num_errores > 0) {
+        printf("\n\033[1;31mCompilacion fallida. Se encontraron %d error(es).\033[0m\n", num_errores);
     }
 
     if (argc >= 2) fclose(yyin);

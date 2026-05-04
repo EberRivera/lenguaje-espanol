@@ -146,7 +146,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 19 "espanol.y"
+#line 20 "espanol.y"
 {
     int entero;
     double decimal;

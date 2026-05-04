@@ -60,6 +60,7 @@ int num_linea = 1;
 ":"   { return DOSPUNTOS; }
 
 [0-9]+\.[0-9]+  { yylval.decimal = atof(yytext); return NUM_DECIMAL; }
+"-"[0-9]+       { yylval.entero = atoi(yytext); return NUM_ENTERO; }
 [0-9]+          { yylval.entero = atoi(yytext); return NUM_ENTERO; }
 \"[^\"]*\"      { yylval.cadena = strdup(yytext); return CADENA; }
 \'[^\']*\'      { yylval.cadena = strdup(yytext); return CARACTER_LIT; }

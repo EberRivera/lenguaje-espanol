@@ -188,6 +188,7 @@ void yyerror(const char *s);
 int yylex();
 
 TipoDato tipo_actual;
+int num_errores = 0;
 
 
 /* Enabling traces.  */
@@ -210,7 +211,7 @@ TipoDato tipo_actual;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 19 "espanol.y"
+#line 20 "espanol.y"
 {
     int entero;
     double decimal;
@@ -218,7 +219,7 @@ typedef union YYSTYPE
     Nodo* nodo;
 }
 /* Line 193 of yacc.c.  */
-#line 222 "espanol.tab.c"
+#line 223 "espanol.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -231,7 +232,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 235 "espanol.tab.c"
+#line 236 "espanol.tab.c"
 
 #ifdef short
 # undef short
@@ -549,13 +550,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    49,    49,    53,    60,    61,    65,    66,    67,    68,
-      72,    73,    77,    81,    90,    94,   101,   102,   103,   104,
-     105,   106,   107,   108,   112,   118,   124,   134,   135,   136,
-     137,   138,   142,   143,   147,   154,   166,   170,   174,   178,
-     182,   186,   190,   191,   192,   193,   194,   195,   196,   197,
-     198,   202,   203,   204,   205,   206,   207,   211,   219,   230,
-     240,   250,   259,   266,   270,   279,   286,   295,   299
+       0,    50,    50,    54,    61,    62,    66,    67,    68,    69,
+      73,    74,    78,    82,    91,    95,   102,   103,   104,   105,
+     106,   107,   108,   109,   113,   119,   125,   135,   136,   137,
+     138,   139,   143,   144,   148,   155,   167,   171,   175,   179,
+     183,   187,   191,   192,   193,   194,   195,   196,   197,   198,
+     199,   203,   204,   205,   206,   207,   208,   212,   220,   231,
+     241,   251,   260,   267,   271,   280,   287,   296,   300
 };
 #endif
 
@@ -1606,51 +1607,51 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 50 "espanol.y"
+#line 51 "espanol.y"
     {
         ejecutar((yyvsp[(2) - (2)].nodo));
     ;}
     break;
 
   case 3:
-#line 54 "espanol.y"
+#line 55 "espanol.y"
     {
         ejecutar((yyvsp[(1) - (1)].nodo));
     ;}
     break;
 
   case 4:
-#line 60 "espanol.y"
+#line 61 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (2)].nodo); ;}
     break;
 
   case 5:
-#line 61 "espanol.y"
+#line 62 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
   case 6:
-#line 65 "espanol.y"
-    { (yyval.nodo) = NULL; ;}
-    break;
-
-  case 7:
 #line 66 "espanol.y"
     { (yyval.nodo) = NULL; ;}
     break;
 
-  case 8:
+  case 7:
 #line 67 "espanol.y"
     { (yyval.nodo) = NULL; ;}
     break;
 
-  case 9:
+  case 8:
 #line 68 "espanol.y"
     { (yyval.nodo) = NULL; ;}
     break;
 
+  case 9:
+#line 69 "espanol.y"
+    { (yyval.nodo) = NULL; ;}
+    break;
+
   case 13:
-#line 82 "espanol.y"
+#line 83 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_PROGRAMA);
         n->izq = (yyvsp[(6) - (7)].nodo);
@@ -1659,61 +1660,61 @@ yyreduce:
     break;
 
   case 14:
-#line 91 "espanol.y"
+#line 92 "espanol.y"
     {
         (yyval.nodo) = agregar_sentencia((yyvsp[(1) - (2)].nodo), (yyvsp[(2) - (2)].nodo));
     ;}
     break;
 
   case 15:
-#line 95 "espanol.y"
+#line 96 "espanol.y"
     {
         (yyval.nodo) = (yyvsp[(1) - (1)].nodo);
     ;}
     break;
 
   case 16:
-#line 101 "espanol.y"
-    { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
-    break;
-
-  case 17:
 #line 102 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 18:
+  case 17:
 #line 103 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 19:
+  case 18:
 #line 104 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 20:
+  case 19:
 #line 105 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 21:
+  case 20:
 #line 106 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 22:
+  case 21:
 #line 107 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
-  case 23:
+  case 22:
 #line 108 "espanol.y"
+    { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
+    break;
+
+  case 23:
+#line 109 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (2)].nodo); ;}
     break;
 
   case 24:
-#line 113 "espanol.y"
+#line 114 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_DECLARACION);
         n->valor_cadena = strdup((yyvsp[(2) - (3)].cadena));
@@ -1722,7 +1723,7 @@ yyreduce:
     break;
 
   case 25:
-#line 119 "espanol.y"
+#line 120 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_DECLARACION);
         n->valor_cadena = strdup((yyvsp[(2) - (6)].cadena));
@@ -1731,7 +1732,7 @@ yyreduce:
     break;
 
   case 26:
-#line 125 "espanol.y"
+#line 126 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_ASIGNACION);
         n->valor_cadena = strdup((yyvsp[(3) - (6)].cadena));
@@ -1741,32 +1742,32 @@ yyreduce:
     break;
 
   case 27:
-#line 134 "espanol.y"
+#line 135 "espanol.y"
     { tipo_actual = TIPO_ENTERO; ;}
     break;
 
   case 28:
-#line 135 "espanol.y"
+#line 136 "espanol.y"
     { tipo_actual = TIPO_DECIMAL; ;}
     break;
 
   case 29:
-#line 136 "espanol.y"
+#line 137 "espanol.y"
     { tipo_actual = TIPO_BOLEANO; ;}
     break;
 
   case 30:
-#line 137 "espanol.y"
+#line 138 "espanol.y"
     { tipo_actual = TIPO_CARACTER; ;}
     break;
 
   case 31:
-#line 138 "espanol.y"
+#line 139 "espanol.y"
     { tipo_actual = TIPO_DECIMAL; ;}
     break;
 
   case 34:
-#line 148 "espanol.y"
+#line 149 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_ASIGNACION);
         n->valor_cadena = strdup((yyvsp[(1) - (4)].cadena));
@@ -1776,7 +1777,7 @@ yyreduce:
     break;
 
   case 35:
-#line 155 "espanol.y"
+#line 156 "espanol.y"
     {
         Nodo* ing = crear_nodo(NODO_INGRESAR);
         ing->izq = nodo_cadena((yyvsp[(5) - (7)].cadena));
@@ -1788,120 +1789,120 @@ yyreduce:
     break;
 
   case 36:
-#line 167 "espanol.y"
+#line 168 "espanol.y"
     {
         (yyval.nodo) = nodo_op(NODO_SUMA, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo));
     ;}
     break;
 
   case 37:
-#line 171 "espanol.y"
+#line 172 "espanol.y"
     {
         (yyval.nodo) = nodo_op(NODO_RESTA, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo));
     ;}
     break;
 
   case 38:
-#line 174 "espanol.y"
+#line 175 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
   case 39:
-#line 179 "espanol.y"
+#line 180 "espanol.y"
     {
         (yyval.nodo) = nodo_op(NODO_MULT, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo));
     ;}
     break;
 
   case 40:
-#line 183 "espanol.y"
+#line 184 "espanol.y"
     {
         (yyval.nodo) = nodo_op(NODO_DIV, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo));
     ;}
     break;
 
   case 41:
-#line 186 "espanol.y"
+#line 187 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
   case 42:
-#line 190 "espanol.y"
+#line 191 "espanol.y"
     { (yyval.nodo) = nodo_entero((yyvsp[(1) - (1)].entero)); ;}
     break;
 
   case 43:
-#line 191 "espanol.y"
+#line 192 "espanol.y"
     { Nodo* n = crear_nodo(NODO_NUM_DECIMAL); n->valor_decimal = (yyvsp[(1) - (1)].decimal); (yyval.nodo) = n; ;}
     break;
 
   case 44:
-#line 192 "espanol.y"
+#line 193 "espanol.y"
     { (yyval.nodo) = nodo_entero(1); ;}
     break;
 
   case 45:
-#line 193 "espanol.y"
+#line 194 "espanol.y"
     { (yyval.nodo) = nodo_entero(0); ;}
     break;
 
   case 46:
-#line 194 "espanol.y"
+#line 195 "espanol.y"
     { (yyval.nodo) = nodo_id((yyvsp[(1) - (1)].cadena)); ;}
     break;
 
   case 47:
-#line 195 "espanol.y"
+#line 196 "espanol.y"
     { (yyval.nodo) = nodo_id((yyvsp[(1) - (4)].cadena)); ;}
     break;
 
   case 48:
-#line 196 "espanol.y"
+#line 197 "espanol.y"
     { (yyval.nodo) = (yyvsp[(2) - (3)].nodo); ;}
     break;
 
   case 49:
-#line 197 "espanol.y"
+#line 198 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
   case 50:
-#line 198 "espanol.y"
+#line 199 "espanol.y"
     { (yyval.nodo) = nodo_cadena((yyvsp[(1) - (1)].cadena)); ;}
     break;
 
   case 51:
-#line 202 "espanol.y"
+#line 203 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_MAYOR, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 52:
-#line 203 "espanol.y"
+#line 204 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_MENOR, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 53:
-#line 204 "espanol.y"
+#line 205 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_MAYORIGUAL, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 54:
-#line 205 "espanol.y"
+#line 206 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_MENORIGUAL, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 55:
-#line 206 "espanol.y"
+#line 207 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_IGUAL, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 56:
-#line 207 "espanol.y"
+#line 208 "espanol.y"
     { (yyval.nodo) = nodo_op(NODO_DIFERENTE, (yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo)); ;}
     break;
 
   case 57:
-#line 212 "espanol.y"
+#line 213 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_SI);
         n->izq = (yyvsp[(3) - (7)].nodo);
@@ -1912,7 +1913,7 @@ yyreduce:
     break;
 
   case 58:
-#line 220 "espanol.y"
+#line 221 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_SI);
         n->izq = (yyvsp[(3) - (11)].nodo);
@@ -1923,7 +1924,7 @@ yyreduce:
     break;
 
   case 59:
-#line 231 "espanol.y"
+#line 232 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_MIENTRAS);
         n->izq = (yyvsp[(3) - (7)].nodo);
@@ -1933,7 +1934,7 @@ yyreduce:
     break;
 
   case 60:
-#line 241 "espanol.y"
+#line 242 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_HACER);
         n->izq = (yyvsp[(3) - (9)].nodo);
@@ -1943,7 +1944,7 @@ yyreduce:
     break;
 
   case 61:
-#line 251 "espanol.y"
+#line 252 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_IMPRIMIR);
         n->izq = (yyvsp[(3) - (5)].nodo);
@@ -1952,7 +1953,7 @@ yyreduce:
     break;
 
   case 62:
-#line 260 "espanol.y"
+#line 261 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_CONCAT);
         n->izq = (yyvsp[(1) - (3)].nodo);
@@ -1962,12 +1963,12 @@ yyreduce:
     break;
 
   case 63:
-#line 266 "espanol.y"
+#line 267 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
   case 64:
-#line 271 "espanol.y"
+#line 272 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_RETORNAR);
         n->izq = (yyvsp[(3) - (5)].nodo);
@@ -1976,7 +1977,7 @@ yyreduce:
     break;
 
   case 65:
-#line 280 "espanol.y"
+#line 281 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_LLAMADA);
         n->valor_cadena = strdup((yyvsp[(1) - (4)].cadena));
@@ -1986,7 +1987,7 @@ yyreduce:
     break;
 
   case 66:
-#line 287 "espanol.y"
+#line 288 "espanol.y"
     {
         Nodo* n = crear_nodo(NODO_LLAMADA);
         n->valor_cadena = strdup((yyvsp[(1) - (3)].cadena));
@@ -1995,20 +1996,20 @@ yyreduce:
     break;
 
   case 67:
-#line 296 "espanol.y"
+#line 297 "espanol.y"
     {
         (yyval.nodo) = agregar_sentencia((yyvsp[(1) - (3)].nodo), (yyvsp[(3) - (3)].nodo));
     ;}
     break;
 
   case 68:
-#line 299 "espanol.y"
+#line 300 "espanol.y"
     { (yyval.nodo) = (yyvsp[(1) - (1)].nodo); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2012 "espanol.tab.c"
+#line 2013 "espanol.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2222,10 +2223,11 @@ yyreturn:
 }
 
 
-#line 302 "espanol.y"
+#line 303 "espanol.y"
 
 
 void yyerror(const char *s) {
+    num_errores++;
     printf("\033[1;31mError sintactico en linea %d: %s\033[0m\n", num_linea, s);
 }
 
@@ -2247,8 +2249,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (yyparse() == 0) {
+    if (yyparse() == 0 && num_errores == 0) {
         printf("\n\033[1;32mCompilacion exitosa. Sin errores.\033[0m\n");
+    } else if (num_errores > 0) {
+        printf("\n\033[1;31mCompilacion fallida. Se encontraron %d error(es).\033[0m\n", num_errores);
     }
 
     if (argc >= 2) fclose(yyin);
