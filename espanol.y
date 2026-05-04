@@ -195,7 +195,7 @@ argumentos:
 %%
 
 void yyerror(const char *s) {
-    printf("Error sintactico en linea %d: %s\n", num_linea, s);
+    printf("\033[1;31mError sintactico en linea %d: %s\033[0m\n", num_linea, s);
 }
 
 int main(int argc, char *argv[]) {
@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (yyparse() == 0) {
-        printf("\nCompilacion exitosa. Sin errores.\n");
+        printf("\n\033[1;32mCompilacion exitosa. Sin errores.\033[0m\n");
     }
 
     if (argc >= 2) fclose(yyin);
