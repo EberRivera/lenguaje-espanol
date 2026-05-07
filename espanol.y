@@ -11,6 +11,7 @@ extern int num_linea;
 extern FILE *yyin;
 
 void yyerror(const char *s);
+void sugerencia_error(const char* contexto);
 int yylex();
 
 TipoDato tipo_actual;
@@ -85,6 +86,17 @@ programa:
         n->izq = $6;
         $$ = n;
     }
+    | PROGRAMA LPAREN RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        printf("[1;33mSugerencia: 'Programa' necesita un nombre. Ejemplo: Programa miPrograma()[0m\n");
+        num_errores++;
+        $$ = NULL;
+    }
+    | PROGRAMA error LLAVE_A sentencias LLAVE_C
+    {
+        printf("[1;33mSugerencia: verifica la declaracion de 'Programa nombre()'[0m\n");
+        $$ = NULL;
+    }
 ;
 
 sentencias:
@@ -151,6 +163,12 @@ asignacion:
         n->valor_cadena = strdup($1);
         n->der = $3;
         $$ = n;
+    }
+    | ID ASIGN expresion error
+    {
+        printf("\033[1;33mSugerencia: falta ; despues de la asignacion de %s\033[0m\n", $1);
+        num_errores++;
+        $$ = NULL;
     }
     | ID ASIGN INGRESAR LPAREN CADENA RPAREN PUNTOCOMA
     {
@@ -225,6 +243,12 @@ sentencia_si:
         n->extra = $10;
         $$ = n;
     }
+    | SI error
+    {
+        sugerencia_error("si");
+        num_errores++;
+        $$ = NULL;
+    }
 ;
 
 sentencia_mientras:
@@ -234,6 +258,12 @@ sentencia_mientras:
         n->izq = $3;
         n->der = $6;
         $$ = n;
+    }
+    | MIENTRAS error
+    {
+        sugerencia_error("mientras");
+        num_errores++;
+        $$ = NULL;
     }
 ;
 
@@ -253,6 +283,12 @@ sentencia_imprimir:
         Nodo* n = crear_nodo(NODO_IMPRIMIR);
         n->izq = $3;
         $$ = n;
+    }
+    | IMPRIMIR error
+    {
+        sugerencia_error("imprimir");
+        num_errores++;
+        $$ = NULL;
     }
 ;
 
@@ -305,6 +341,49 @@ argumentos:
 void yyerror(const char *s) {
     num_errores++;
     printf("\033[1;31mError sintactico en linea %d: %s\033[0m\n", num_linea, s);
+
+    /* Sugerencias basadas en el token que causo el error */
+    switch(yychar) {
+        case IMPRIMIR:
+            printf("\033[1;33mSugerencia: verifica la sentencia anterior, posiblemente falta ;\033[0m\n");
+            break;
+        case ENTERO: case DECIMAL: case BOLEANO: case CARACTER: case DOBLE:
+            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            break;
+        case SI:
+            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            break;
+        case MIENTRAS:
+            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            break;
+        case LLAVE_C:
+            printf("\033[1;33mSugerencia: verifica que todas las sentencias terminen con ;\033[0m\n");
+            break;
+        case LPAREN:
+            printf("\033[1;33mSugerencia: verifica que el nombre de Programa este escrito correctamente\033[0m\n");
+            break;
+        case -1:
+            printf("\033[1;33mSugerencia: verifica que el programa este completo y cierre con }\033[0m\n");
+            break;
+        default:
+            printf("\033[1;33mSugerencia: revisa la sintaxis en la linea %d\033[0m\n", num_linea);
+            break;
+    }
+}
+
+void sugerencia_error(const char* contexto) {
+    if (strcmp(contexto, "declaracion") == 0)
+        printf("\033[1;33mSugerencia: falta ; al final de la declaracion\033[0m\n");
+    else if (strcmp(contexto, "asignacion") == 0)
+        printf("\033[1;33mSugerencia: falta ; al final de la asignacion\033[0m\n");
+    else if (strcmp(contexto, "imprimir") == 0)
+        printf("\033[1;33mSugerencia: verifica Imprimir(\"texto\". variable);\033[0m\n");
+    else if (strcmp(contexto, "si") == 0)
+        printf("\033[1;33mSugerencia: verifica si (condicion){ ... }delocontrario{ ... }\033[0m\n");
+    else if (strcmp(contexto, "mientras") == 0)
+        printf("\033[1;33mSugerencia: verifica mientras (condicion){ ... }\033[0m\n");
+    else if (strcmp(contexto, "programa") == 0)
+        printf("\033[1;33mSugerencia: verifica Programa nombre(){ ... }\033[0m\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -316,7 +395,25 @@ int main(int argc, char *argv[]) {
         printf("Escribe tu programa y presiona\n");
         printf("Ctrl+D cuando termines.\n");
         printf("---------------------------------\n");
-        yyin = stdin;
+
+        /* Leer todo el input en un buffer antes de parsear */
+        char buffer[65536];
+        int total = 0;
+        int c;
+        while ((c = getchar()) != EOF && total < 65535) {
+            buffer[total++] = (char)c;
+        }
+        buffer[total] = '\0';
+
+        /* Crear archivo temporal con el contenido */
+        FILE* tmp = tmpfile();
+        if (!tmp) {
+            printf("Error: no se pudo crear archivo temporal\n");
+            return 1;
+        }
+        fwrite(buffer, 1, total, tmp);
+        rewind(tmp);
+        yyin = tmp;
     } else {
         yyin = fopen(argv[1], "r");
         if (!yyin) {
@@ -331,6 +428,6 @@ int main(int argc, char *argv[]) {
         printf("\n\033[1;31mCompilacion fallida. Se encontraron %d error(es).\033[0m\n", num_errores);
     }
 
-    if (argc >= 2) fclose(yyin);
+    fclose(yyin);
     return 0;
 }
