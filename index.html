@@ -173,6 +173,7 @@
     <span id="btnTxt">▶ Compilar</span>
   </button>
   <button class="btn btn-sec" onclick="limpiar()">⊘ Limpiar</button>
+  <button class="btn btn-sec" id="btnC" onclick="compilarC()" style="border-color:#7c4dff;color:#7c4dff">⚙ Compilar a C</button>
   <span style="font-size:11px;color:var(--text-dim)"><span class="kbd">⌘ Enter</span></span>
   <div class="divider"></div>
   <span class="ex-label">ejemplos:</span>
@@ -266,6 +267,32 @@ function limpiar() {
   document.getElementById('output').innerHTML = `<div class="out-ph"><div class="icon">◈</div><div style="font-size:12px">escribe un programa y presiona<br><strong>Compilar</strong></div></div>`;
   document.getElementById('outMeta').textContent = '';
   onEdit();
+}
+
+async function compilarC() {
+  const codigo = document.getElementById('editor').value.trim();
+  if (!codigo) return;
+  const entradasRaw = document.getElementById('entradas').value;
+  const entradas = entradasRaw.replace(/ +/g, '\n');
+
+  const btn = document.getElementById('btnC');
+  btn.disabled = true;
+  btn.textContent = '⚙ Compilando...';
+
+  try {
+    const res = await fetch('/compilar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo, entradas, modo: 'compilar' })
+    });
+    const data = await res.json();
+    render(data.salida);
+  } catch(e) {
+    render('Error: no se pudo conectar al servidor.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚙ Compilar a C';
+  }
 }
 
 async function compilar() {

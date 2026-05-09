@@ -19,41 +19,67 @@ class CompiladorHandler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(f.read())
 
     def do_POST(self):
-        if self.path == '/compilar':
-            length = int(self.headers['Content-Length'])
-            body = self.rfile.read(length)
-            data = json.loads(body)
-            codigo = data.get('codigo', '')
-            entradas = data.get('entradas', '')
+        length = int(self.headers['Content-Length'])
+        body = self.rfile.read(length)
+        data = json.loads(body)
+        codigo = data.get('codigo', '')
+        entradas = data.get('entradas', '')
+        modo = data.get('modo', 'interpretar')
 
-            tmp = tempfile.NamedTemporaryFile(suffix='.es', delete=False, mode='w')
-            tmp.write(codigo)
-            tmp.close()
+        tmp = tempfile.NamedTemporaryFile(suffix='.es', delete=False, mode='w')
+        tmp.write(codigo)
+        tmp.close()
 
-            try:
+        try:
+            if modo == 'compilar':
+                # Generar codigo C y ejecutable
                 result = subprocess.run(
-                    ['./espanol', tmp.name],
-                    input=entradas,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
+                    ['./espanol', tmp.name, '-c'],
+                    capture_output=True, text=True, timeout=10,
                     cwd=os.path.dirname(os.path.abspath(__file__))
                 )
                 salida = result.stdout + result.stderr
-            except subprocess.TimeoutExpired:
-                salida = "Error: tiempo de ejecucion excedido (ciclo infinito?)"
-            except Exception as e:
-                salida = f"Error: {str(e)}"
-            finally:
-                os.unlink(tmp.name)
 
-            salida = re.sub(r'\033\[[0-9;]*m', '', salida)
+                # Intentar correr el ejecutable generado
+                exe = tmp.name.replace('.es', '')
+                if os.path.exists(exe):
+                    result2 = subprocess.run(
+                        [exe],
+                        input=entradas,
+                        capture_output=True, text=True, timeout=10
+                    )
+                    salida += '\n--- Salida del ejecutable ---\n'
+                    salida += result2.stdout + result2.stderr
+                    os.unlink(exe)
+                    c_file = tmp.name.replace('.es', '.c')
+                    if os.path.exists(c_file):
+                        with open(c_file, 'r') as cf:
+                            salida += '\n--- Codigo C generado ---\n'
+                            salida += cf.read()
+                        os.unlink(c_file)
+            else:
+                result = subprocess.run(
+                    ['./espanol', tmp.name],
+                    input=entradas,
+                    capture_output=True, text=True, timeout=10,
+                    cwd=os.path.dirname(os.path.abspath(__file__))
+                )
+                salida = result.stdout + result.stderr
 
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps({'salida': salida}).encode())
+        except subprocess.TimeoutExpired:
+            salida = "Error: tiempo de ejecucion excedido"
+        except Exception as e:
+            salida = f"Error: {str(e)}"
+        finally:
+            os.unlink(tmp.name)
+
+        salida = re.sub(r'\033\[[0-9;]*m', '', salida)
+
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({'salida': salida}).encode())
 
 if __name__ == '__main__':
     port = 8080

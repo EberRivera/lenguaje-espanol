@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "eval.h"
 #include "funciones.h"
+#include "codegen.h"
 
 extern int num_linea;
 extern FILE *yyin;
@@ -17,6 +18,7 @@ int yylex();
 
 TipoDato tipo_actual;
 int num_errores = 0;
+Nodo* programa_ast = NULL;
 char param_nombres[10][50];
 int num_params_actual = 0;
 %}
@@ -108,6 +110,7 @@ programa:
     {
         Nodo* n = crear_nodo(NODO_PROGRAMA);
         n->izq = $6;
+        programa_ast = n;
         $$ = n;
     }
     | PROGRAMA LPAREN RPAREN LLAVE_A sentencias LLAVE_C
@@ -528,6 +531,27 @@ int main(int argc, char *argv[]) {
 
     if (yyparse() == 0 && num_errores == 0) {
         printf("\n\033[1;32mCompilacion exitosa. Sin errores.\033[0m\n");
+
+        /* Generar codigo C si se paso -c como argumento */
+        if (argc >= 3 && strcmp(argv[2], "-c") == 0) {
+            char salida[256];
+            strncpy(salida, argv[1], sizeof(salida));
+            char* punto = strrchr(salida, '.');
+            if (punto) *punto = '\0';
+            strcat(salida, ".c");
+            generar_codigo(programa_ast, salida);
+
+            /* Compilar con gcc */
+            char cmd[512];
+            char exe[256];
+            strncpy(exe, salida, sizeof(exe));
+            punto = strrchr(exe, '.');
+            if (punto) *punto = '\0';
+            sprintf(cmd, "gcc -o %s %s", exe, salida);
+            printf("\033[1;33mCompilando con gcc: %s\033[0m\n", cmd);
+            system(cmd);
+            printf("\033[1;32mEjecutable generado: %s\033[0m\n", exe);
+        }
     } else if (num_errores > 0) {
         printf("\n\033[1;31mCompilacion fallida. Se encontraron %d error(es).\033[0m\n", num_errores);
     }
