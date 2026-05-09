@@ -1,6 +1,5 @@
 
 #include "eval.h"
-#include <math.h>
 
 void imprimir_valor(Nodo* n) {
     if (!n) return;
@@ -19,36 +18,14 @@ void imprimir_valor(Nodo* n) {
         printf("%.2f", n->valor_decimal);
     } else if (n->tipo == NODO_ID) {
         Variable* v = buscar_variable(n->valor_cadena);
-        if (v && v->tipo == TIPO_DECIMAL) {
+        if (v && v->tipo == TIPO_DECIMAL && !v->es_arreglo)
             printf("%.2f", v->valor.decimal);
-        } else {
+        else
             printf("%d", evaluar(n));
-        }
+    } else if (n->tipo == NODO_ARREGLO_ACCESO) {
+        printf("%d", evaluar(n));
     } else {
         printf("%d", evaluar(n));
-    }
-}
-
-double evaluar_decimal(Nodo* n) {
-    if (!n) return 0;
-    switch(n->tipo) {
-        case NODO_NUM_ENTERO:  return (double)n->valor_entero;
-        case NODO_NUM_DECIMAL: return n->valor_decimal;
-        case NODO_ID: {
-            Variable* v = buscar_variable(n->valor_cadena);
-            if (!v) return 0;
-            if (v->tipo == TIPO_DECIMAL) return v->valor.decimal;
-            return (double)v->valor.entero;
-        }
-        case NODO_SUMA:  return evaluar_decimal(n->izq) + evaluar_decimal(n->der);
-        case NODO_RESTA: return evaluar_decimal(n->izq) - evaluar_decimal(n->der);
-        case NODO_MULT:  return evaluar_decimal(n->izq) * evaluar_decimal(n->der);
-        case NODO_DIV: {
-            double d = evaluar_decimal(n->der);
-            if (d == 0) { printf("\033[1;31mError: division por cero\033[0m\n"); return 0; }
-            return evaluar_decimal(n->izq) / d;
-        }
-        default: return (double)evaluar(n);
     }
 }
 
@@ -66,6 +43,10 @@ int evaluar(Nodo* n) {
             if (v->tipo == TIPO_DECIMAL) return (int)v->valor.decimal;
             return v->valor.entero;
         }
+        case NODO_ARREGLO_ACCESO: {
+            int idx = evaluar(n->izq);
+            return obtener_arreglo_entero(n->valor_cadena, idx);
+        }
         case NODO_SUMA:       return evaluar(n->izq) + evaluar(n->der);
         case NODO_RESTA:      return evaluar(n->izq) - evaluar(n->der);
         case NODO_MULT:       return evaluar(n->izq) * evaluar(n->der);
@@ -80,53 +61,99 @@ int evaluar(Nodo* n) {
         case NODO_MENORIGUAL: return evaluar(n->izq) <= evaluar(n->der);
         case NODO_IGUAL:      return evaluar(n->izq) == evaluar(n->der);
         case NODO_DIFERENTE:  return evaluar(n->izq) != evaluar(n->der);
+        case NODO_AND:        return evaluar(n->izq) && evaluar(n->der);
+        case NODO_OR:         return evaluar(n->izq) || evaluar(n->der);
+        case NODO_NOT:        return !evaluar(n->izq);
         case NODO_NEGATIVO:   return -evaluar(n->izq);
+        case NODO_LLAMADA: {
+            Funcion* f = buscar_funcion(n->valor_cadena);
+            if (!f) return 0;
+
+            /* Evaluar argumentos */
+            int args[MAX_PARAMS];
+            int nargs = 0;
+            Nodo* arg = n->izq;
+            while (arg && nargs < MAX_PARAMS) {
+                args[nargs++] = evaluar(arg);
+                arg = arg->siguiente;
+            }
+
+            /* Guardar variables actuales */
+            Variable backup[MAX_VARS];
+            int backup_n = num_vars;
+            memcpy(backup, tabla, sizeof(Variable) * num_vars);
+
+            /* Crear variables de parametros */
+            for (int i = 0; i < f->num_params && i < nargs; i++) {
+                Variable* v = crear_variable(f->params[i], TIPO_ENTERO);
+                v->valor.entero = args[i];
+                v->inicializado = 1;
+            }
+
+            /* Ejecutar cuerpo */
+            retorno_activo = 0;
+            valor_retorno = 0;
+            ejecutar_lista(f->cuerpo);
+            int resultado = valor_retorno;
+
+            /* Restaurar variables */
+            num_vars = backup_n;
+            memcpy(tabla, backup, sizeof(Variable) * num_vars);
+
+            retorno_activo = 0;
+            return resultado;
+        }
         default: return 0;
     }
 }
 
 void ejecutar_lista(Nodo* n) {
-    while (n) {
+    while (n && !retorno_activo) {
         ejecutar(n);
         n = n->siguiente;
     }
 }
 
 void ejecutar(Nodo* n) {
-    if (!n) return;
+    if (!n || retorno_activo) return;
     switch(n->tipo) {
         case NODO_PROGRAMA: {
             ejecutar_lista(n->izq);
             break;
         }
         case NODO_DECLARACION: {
-            crear_variable(n->valor_cadena, tipo_desde_nodo(n));
+            crear_variable(n->valor_cadena, TIPO_ENTERO);
+            break;
+        }
+        case NODO_ARREGLO_DECL: {
+            int tamano = evaluar(n->izq);
+            crear_arreglo(n->valor_cadena, TIPO_ENTERO, tamano);
             break;
         }
         case NODO_ASIGNACION: {
             if (n->der && n->der->tipo == NODO_INGRESAR) {
-                Variable* v = buscar_variable(n->valor_cadena);
+                int val;
                 if (n->der->izq) imprimir_valor(n->der->izq);
                 printf(": ");
                 fflush(stdout);
-                if (v && v->tipo == TIPO_DECIMAL) {
-                    double val;
-                    scanf("%lf", &val);
-                    asignar_decimal(n->valor_cadena, val);
-                } else {
-                    int val;
-                    scanf("%d", &val);
-                    asignar_entero(n->valor_cadena, val);
-                }
-            } else if (n->der && n->der->tipo == NODO_NUM_DECIMAL) {
-                asignar_decimal(n->valor_cadena, n->der->valor_decimal);
+                scanf("%d", &val);
+                asignar_entero(n->valor_cadena, val);
             } else {
-                Variable* v = buscar_variable(n->valor_cadena);
-                if (v && v->tipo == TIPO_DECIMAL) {
-                    asignar_decimal(n->valor_cadena, evaluar_decimal(n->der));
-                } else {
-                    asignar_entero(n->valor_cadena, evaluar(n->der));
-                }
+                asignar_entero(n->valor_cadena, evaluar(n->der));
+            }
+            break;
+        }
+        case NODO_ARREGLO_ASIGN: {
+            int idx = evaluar(n->izq);
+            if (n->der && n->der->tipo == NODO_INGRESAR) {
+                int val;
+                if (n->der->izq) imprimir_valor(n->der->izq);
+                printf(": ");
+                fflush(stdout);
+                scanf("%d", &val);
+                asignar_arreglo_entero(n->valor_cadena, idx, val);
+            } else {
+                asignar_arreglo_entero(n->valor_cadena, idx, evaluar(n->der));
             }
             break;
         }
@@ -137,26 +164,32 @@ void ejecutar(Nodo* n) {
         }
         case NODO_SI: {
             int cond = evaluar(n->izq);
-            if (cond) {
+            if (cond)
                 ejecutar_lista(n->der);
-            } else if (n->extra) {
+            else if (n->extra)
                 ejecutar_lista(n->extra);
-            }
             break;
         }
         case NODO_MIENTRAS: {
-            while (evaluar(n->izq)) {
+            while (!retorno_activo && evaluar(n->izq))
                 ejecutar_lista(n->der);
-            }
             break;
         }
         case NODO_HACER: {
             do {
                 ejecutar_lista(n->izq);
-            } while (evaluar(n->der));
+            } while (!retorno_activo && evaluar(n->der));
             break;
         }
-        case NODO_RETORNAR: break;
+        case NODO_RETORNAR: {
+            valor_retorno = evaluar(n->izq);
+            retorno_activo = 1;
+            break;
+        }
+        case NODO_LLAMADA: {
+            evaluar(n);
+            break;
+        }
         default: break;
     }
 }

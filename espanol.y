@@ -6,6 +6,7 @@
 #include "tabla.h"
 #include "ast.h"
 #include "eval.h"
+#include "funciones.h"
 
 extern int num_linea;
 extern FILE *yyin;
@@ -16,6 +17,8 @@ int yylex();
 
 TipoDato tipo_actual;
 int num_errores = 0;
+char param_nombres[10][50];
+int num_params_actual = 0;
 %}
 
 %union {
@@ -28,7 +31,7 @@ int num_errores = 0;
 %token BOLEANO DECIMAL VERDADERO FALSO CARACTER ENTERO DOBLE CONSTANTE
 %token CASOS DEFECTO CASO PARAR PARA HACER MIENTRAS RETORNAR
 %token SI DELOCONTRARIO FUNCION PROCEDIMIENTO PROGRAMA
-%token INGRESAR IMPRIMIR
+%token INGRESAR IMPRIMIR AND OR NOT
 %token SUMA RESTA MULT DIV PUNTO ASIGN IGUAL DIFERENTE
 %token MAYOR MENOR MAYORIGUAL MENORIGUAL
 %token LPAREN RPAREN LLAVE_A LLAVE_C CORCHETE_A CORCHETE_C
@@ -41,7 +44,7 @@ int num_errores = 0;
 %type <nodo> declaracion asignacion
 %type <nodo> sentencia_si sentencia_mientras sentencia_hacer
 %type <nodo> sentencia_imprimir sentencia_retornar
-%type <nodo> expresion termino factor condicion
+%type <nodo> expresion termino factor condicion cond_simple
 %type <nodo> params_imprimir llamada_funcion argumentos
 %type <nodo> inicio lista_funciones definicion_funcion
 
@@ -64,10 +67,28 @@ lista_funciones:
 ;
 
 definicion_funcion:
-    tipo ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C  { $$ = NULL; }
-    | tipo ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C                 { $$ = NULL; }
-    | ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C     { $$ = NULL; }
-    | ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C                      { $$ = NULL; }
+    tipo ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        registrar_funcion($<cadena>2, param_nombres, num_params_actual, $7);
+        num_params_actual = 0;
+        $$ = NULL;
+    }
+    | tipo ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        registrar_funcion($<cadena>2, param_nombres, 0, $6);
+        $$ = NULL;
+    }
+    | ID LPAREN lista_parametros RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        registrar_funcion($1, param_nombres, num_params_actual, $6);
+        num_params_actual = 0;
+        $$ = NULL;
+    }
+    | ID LPAREN RPAREN LLAVE_A sentencias LLAVE_C
+    {
+        registrar_funcion($1, param_nombres, 0, $5);
+        $$ = NULL;
+    }
 ;
 
 lista_parametros:
@@ -77,6 +98,9 @@ lista_parametros:
 
 parametro:
     tipo ID
+    {
+        strcpy(param_nombres[num_params_actual++], $<cadena>2);
+    }
 ;
 
 programa:
@@ -128,10 +152,18 @@ declaracion:
         n->valor_cadena = strdup($2);
         $$ = n;
     }
-    | tipo ID CORCHETE_A dimensiones CORCHETE_C PUNTOCOMA
+    | tipo ID CORCHETE_A NUM_ENTERO CORCHETE_C PUNTOCOMA
     {
-        Nodo* n = crear_nodo(NODO_DECLARACION);
+        Nodo* n = crear_nodo(NODO_ARREGLO_DECL);
         n->valor_cadena = strdup($2);
+        n->izq = nodo_entero($4);
+        $$ = n;
+    }
+    | tipo ID CORCHETE_A NUM_ENTERO COMA NUM_ENTERO CORCHETE_C PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_ARREGLO_DECL);
+        n->valor_cadena = strdup($2);
+        n->izq = nodo_entero($4 * $6);
         $$ = n;
     }
     | CONSTANTE tipo ID ASIGN expresion PUNTOCOMA
@@ -151,10 +183,7 @@ tipo:
     | DOBLE     { tipo_actual = TIPO_DECIMAL; }
 ;
 
-dimensiones:
-    NUM_ENTERO
-    | dimensiones COMA NUM_ENTERO
-;
+
 
 asignacion:
     ID ASIGN expresion PUNTOCOMA
@@ -176,6 +205,24 @@ asignacion:
         ing->izq = nodo_cadena($5);
         Nodo* n = crear_nodo(NODO_ASIGNACION);
         n->valor_cadena = strdup($1);
+        n->der = ing;
+        $$ = n;
+    }
+    | ID CORCHETE_A expresion CORCHETE_C ASIGN expresion PUNTOCOMA
+    {
+        Nodo* n = crear_nodo(NODO_ARREGLO_ASIGN);
+        n->valor_cadena = strdup($1);
+        n->izq = $3;
+        n->der = $6;
+        $$ = n;
+    }
+    | ID CORCHETE_A expresion CORCHETE_C ASIGN INGRESAR LPAREN CADENA RPAREN PUNTOCOMA
+    {
+        Nodo* ing = crear_nodo(NODO_INGRESAR);
+        ing->izq = nodo_cadena($8);
+        Nodo* n = crear_nodo(NODO_ARREGLO_ASIGN);
+        n->valor_cadena = strdup($1);
+        n->izq = $3;
         n->der = ing;
         $$ = n;
     }
@@ -211,19 +258,33 @@ factor:
     | VERDADERO         { $$ = nodo_entero(1); }
     | FALSO             { $$ = nodo_entero(0); }
     | ID                { $$ = nodo_id($1); }
-    | ID CORCHETE_A expresion CORCHETE_C { $$ = nodo_id($1); }
+    | ID CORCHETE_A expresion CORCHETE_C
+    {
+        Nodo* n = crear_nodo(NODO_ARREGLO_ACCESO);
+        n->valor_cadena = strdup($1);
+        n->izq = $3;
+        $$ = n;
+    }
     | LPAREN expresion RPAREN { $$ = $2; }
     | llamada_funcion   { $$ = $1; }
     | CADENA            { $$ = nodo_cadena($1); }
 ;
 
-condicion:
-    expresion MAYOR expresion       { $$ = nodo_op(NODO_MAYOR, $1, $3); }
-    | expresion MENOR expresion     { $$ = nodo_op(NODO_MENOR, $1, $3); }
+cond_simple:
+    expresion MAYOR expresion        { $$ = nodo_op(NODO_MAYOR, $1, $3); }
+    | expresion MENOR expresion      { $$ = nodo_op(NODO_MENOR, $1, $3); }
     | expresion MAYORIGUAL expresion { $$ = nodo_op(NODO_MAYORIGUAL, $1, $3); }
     | expresion MENORIGUAL expresion { $$ = nodo_op(NODO_MENORIGUAL, $1, $3); }
-    | expresion IGUAL expresion     { $$ = nodo_op(NODO_IGUAL, $1, $3); }
-    | expresion DIFERENTE expresion { $$ = nodo_op(NODO_DIFERENTE, $1, $3); }
+    | expresion IGUAL expresion      { $$ = nodo_op(NODO_IGUAL, $1, $3); }
+    | expresion DIFERENTE expresion  { $$ = nodo_op(NODO_DIFERENTE, $1, $3); }
+;
+
+condicion:
+    cond_simple                      { $$ = $1; }
+    | condicion AND cond_simple      { $$ = nodo_op(NODO_AND, $1, $3); }
+    | condicion OR cond_simple       { $$ = nodo_op(NODO_OR, $1, $3); }
+    | NOT cond_simple                { $$ = nodo_op(NODO_NOT, $2, NULL); }
+    | LPAREN condicion RPAREN        { $$ = $2; }
 ;
 
 sentencia_si:
@@ -342,31 +403,55 @@ void yyerror(const char *s) {
     num_errores++;
     printf("\033[1;31mError sintactico en linea %d: %s\033[0m\n", num_linea, s);
 
-    /* Sugerencias basadas en el token que causo el error */
     switch(yychar) {
         case IMPRIMIR:
-            printf("\033[1;33mSugerencia: verifica la sentencia anterior, posiblemente falta ;\033[0m\n");
+            printf("\033[1;33mSugerencia: falta ; al final de la sentencia anterior\033[0m\n");
             break;
         case ENTERO: case DECIMAL: case BOLEANO: case CARACTER: case DOBLE:
-            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            printf("\033[1;33mSugerencia: falta ; al final de la declaracion anterior\033[0m\n");
+            printf("\033[1;33m            Formato correcto: tipo nombre;\033[0m\n");
             break;
         case SI:
-            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            printf("\033[1;33mSugerencia: falta ; antes del si, o verifica: si (condicion){ ... }\033[0m\n");
             break;
         case MIENTRAS:
-            printf("\033[1;33mSugerencia: posiblemente falta ; en la linea anterior\033[0m\n");
+            printf("\033[1;33mSugerencia: falta ; antes del mientras, o verifica: mientras (condicion){ ... }\033[0m\n");
+            break;
+        case HACER:
+            printf("\033[1;33mSugerencia: verifica: hacer{ ... }mientras (condicion);\033[0m\n");
             break;
         case LLAVE_C:
-            printf("\033[1;33mSugerencia: verifica que todas las sentencias terminen con ;\033[0m\n");
+            printf("\033[1;33mSugerencia: falta ; al final de alguna sentencia dentro del bloque\033[0m\n");
+            break;
+        case LLAVE_A:
+            printf("\033[1;33mSugerencia: verifica que la condicion este entre parentesis: si (condicion){\033[0m\n");
             break;
         case LPAREN:
-            printf("\033[1;33mSugerencia: verifica que el nombre de Programa este escrito correctamente\033[0m\n");
+            printf("\033[1;33mSugerencia: Programa necesita un nombre. Formato: Programa nombre()\033[0m\n");
+            break;
+        case ASIGN:
+            printf("\033[1;33mSugerencia: solo una variable puede estar a la izquierda del =\033[0m\n");
+            printf("\033[1;33m            Formato correcto: variable = expresion;\033[0m\n");
+            printf("\033[1;33m            Ejemplo: c = a+b;  (NO a+b = c)\033[0m\n");
+            break;
+        case RPAREN:
+            printf("\033[1;33mSugerencia: verifica que los parentesis esten balanceados\033[0m\n");
+            break;
+        case PUNTOCOMA:
+            printf("\033[1;33mSugerencia: falta ; al final de la sentencia\033[0m\n");
+            break;
+        case RETORNAR:
+            printf("\033[1;33mSugerencia: verifica: retornar(valor);\033[0m\n");
+            break;
+        case CASOS:
+            printf("\033[1;33mSugerencia: verifica: casos variable { caso 1: ...; parar; }\033[0m\n");
             break;
         case -1:
-            printf("\033[1;33mSugerencia: verifica que el programa este completo y cierre con }\033[0m\n");
+            printf("\033[1;33mSugerencia: el programa esta incompleto, verifica que cierre con }\033[0m\n");
             break;
         default:
             printf("\033[1;33mSugerencia: revisa la sintaxis en la linea %d\033[0m\n", num_linea);
+            printf("\033[1;33m            Verifica: punto y coma, parentesis y llaves balanceados\033[0m\n");
             break;
     }
 }

@@ -35,6 +35,11 @@ int num_linea = 1;
 "Programa"      { return PROGRAMA; }
 "Ingresar"      { return INGRESAR; }
 "Imprimir"      { return IMPRIMIR; }
+"y"             { return AND; }
+"o"             { return OR; }
+"no"            { return NOT; }
+"&&"            { return AND; }
+"||"            { return OR; }
 
 "+"   { return SUMA; }
 "-"   { return RESTA; }

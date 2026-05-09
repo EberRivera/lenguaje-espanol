@@ -62,32 +62,35 @@
      PROGRAMA = 278,
      INGRESAR = 279,
      IMPRIMIR = 280,
-     SUMA = 281,
-     RESTA = 282,
-     MULT = 283,
-     DIV = 284,
-     PUNTO = 285,
-     ASIGN = 286,
-     IGUAL = 287,
-     DIFERENTE = 288,
-     MAYOR = 289,
-     MENOR = 290,
-     MAYORIGUAL = 291,
-     MENORIGUAL = 292,
-     LPAREN = 293,
-     RPAREN = 294,
-     LLAVE_A = 295,
-     LLAVE_C = 296,
-     CORCHETE_A = 297,
-     CORCHETE_C = 298,
-     COMA = 299,
-     PUNTOCOMA = 300,
-     DOSPUNTOS = 301,
-     NUM_ENTERO = 302,
-     NUM_DECIMAL = 303,
-     CADENA = 304,
-     CARACTER_LIT = 305,
-     ID = 306
+     AND = 281,
+     OR = 282,
+     NOT = 283,
+     SUMA = 284,
+     RESTA = 285,
+     MULT = 286,
+     DIV = 287,
+     PUNTO = 288,
+     ASIGN = 289,
+     IGUAL = 290,
+     DIFERENTE = 291,
+     MAYOR = 292,
+     MENOR = 293,
+     MAYORIGUAL = 294,
+     MENORIGUAL = 295,
+     LPAREN = 296,
+     RPAREN = 297,
+     LLAVE_A = 298,
+     LLAVE_C = 299,
+     CORCHETE_A = 300,
+     CORCHETE_C = 301,
+     COMA = 302,
+     PUNTOCOMA = 303,
+     DOSPUNTOS = 304,
+     NUM_ENTERO = 305,
+     NUM_DECIMAL = 306,
+     CADENA = 307,
+     CARACTER_LIT = 308,
+     ID = 309
    };
 #endif
 /* Tokens.  */
@@ -114,39 +117,42 @@
 #define PROGRAMA 278
 #define INGRESAR 279
 #define IMPRIMIR 280
-#define SUMA 281
-#define RESTA 282
-#define MULT 283
-#define DIV 284
-#define PUNTO 285
-#define ASIGN 286
-#define IGUAL 287
-#define DIFERENTE 288
-#define MAYOR 289
-#define MENOR 290
-#define MAYORIGUAL 291
-#define MENORIGUAL 292
-#define LPAREN 293
-#define RPAREN 294
-#define LLAVE_A 295
-#define LLAVE_C 296
-#define CORCHETE_A 297
-#define CORCHETE_C 298
-#define COMA 299
-#define PUNTOCOMA 300
-#define DOSPUNTOS 301
-#define NUM_ENTERO 302
-#define NUM_DECIMAL 303
-#define CADENA 304
-#define CARACTER_LIT 305
-#define ID 306
+#define AND 281
+#define OR 282
+#define NOT 283
+#define SUMA 284
+#define RESTA 285
+#define MULT 286
+#define DIV 287
+#define PUNTO 288
+#define ASIGN 289
+#define IGUAL 290
+#define DIFERENTE 291
+#define MAYOR 292
+#define MENOR 293
+#define MAYORIGUAL 294
+#define MENORIGUAL 295
+#define LPAREN 296
+#define RPAREN 297
+#define LLAVE_A 298
+#define LLAVE_C 299
+#define CORCHETE_A 300
+#define CORCHETE_C 301
+#define COMA 302
+#define PUNTOCOMA 303
+#define DOSPUNTOS 304
+#define NUM_ENTERO 305
+#define NUM_DECIMAL 306
+#define CADENA 307
+#define CARACTER_LIT 308
+#define ID 309
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 21 "espanol.y"
+#line 24 "espanol.y"
 {
     int entero;
     double decimal;
@@ -154,7 +160,7 @@ typedef union YYSTYPE
     Nodo* nodo;
 }
 /* Line 1529 of yacc.c.  */
-#line 158 "espanol.tab.h"
+#line 164 "espanol.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
