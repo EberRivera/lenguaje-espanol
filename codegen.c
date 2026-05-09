@@ -2,14 +2,6 @@
 #include "codegen.h"
 #include "funciones.h"
 
-static int temp_var = 0;
-
-char* nuevo_temp() {
-    static char buf[20];
-    sprintf(buf, "_t%d", temp_var++);
-    return buf;
-}
-
 void imprimir_indent(FILE* f, int indent) {
     for (int i = 0; i < indent; i++) fprintf(f, "    ");
 }
@@ -21,19 +13,19 @@ void gen_expresion(Nodo* n, FILE* f) {
         case NODO_NUM_DECIMAL: fprintf(f, "%.2f", n->valor_decimal); break;
         case NODO_ID:          fprintf(f, "%s", n->valor_cadena); break;
         case NODO_NEGATIVO:    fprintf(f, "-("); gen_expresion(n->izq, f); fprintf(f, ")"); break;
-        case NODO_SUMA:  fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " + "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_RESTA: fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " - "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_MULT:  fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " * "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_DIV:   fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " / "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_MAYOR:      fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " > ");  gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_MENOR:      fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " < ");  gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_MAYORIGUAL: fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " >= "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_MENORIGUAL: fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " <= "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_IGUAL:      fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " == "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_DIFERENTE:  fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " != "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_AND:        fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " && "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_OR:         fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " || "); gen_expresion(n->der, f); fprintf(f, ")"); break;
-        case NODO_NOT:        fprintf(f, "!("); gen_expresion(n->izq, f); fprintf(f, ")"); break;
+        case NODO_SUMA:        fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " + "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_RESTA:       fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " - "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_MULT:        fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " * "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_DIV:         fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " / "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_MAYOR:       fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " > ");  gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_MENOR:       fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " < ");  gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_MAYORIGUAL:  fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " >= "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_MENORIGUAL:  fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " <= "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_IGUAL:       fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " == "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_DIFERENTE:   fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " != "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_AND:         fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " && "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_OR:          fprintf(f, "("); gen_expresion(n->izq, f); fprintf(f, " || "); gen_expresion(n->der, f); fprintf(f, ")"); break;
+        case NODO_NOT:         fprintf(f, "!("); gen_expresion(n->izq, f); fprintf(f, ")"); break;
         case NODO_ARREGLO_ACCESO:
             fprintf(f, "%s[", n->valor_cadena);
             gen_expresion(n->izq, f);
@@ -89,6 +81,8 @@ void gen_imprimir_nodo(Nodo* n, FILE* f, int indent) {
     }
 }
 
+void gen_lista(Nodo* n, FILE* f, int indent);
+
 void gen_nodo(Nodo* n, FILE* f, int indent) {
     if (!n) return;
     switch(n->tipo) {
@@ -101,22 +95,19 @@ void gen_nodo(Nodo* n, FILE* f, int indent) {
             imprimir_indent(f, indent);
             fprintf(f, "int %s[", n->valor_cadena);
             gen_expresion(n->izq, f);
-            fprintf(f, "];\n", n->valor_cadena);
-            /* fix */
+            fprintf(f, "];\n");
             break;
         }
         case NODO_ASIGNACION: {
             imprimir_indent(f, indent);
             if (n->der && n->der->tipo == NODO_INGRESAR) {
-                char* msg = "";
+                char msg[200] = "";
                 if (n->der->izq && n->der->izq->tipo == NODO_CADENA) {
                     char* s = n->der->izq->valor_cadena;
                     if (s[0] == '"') s++;
-                    static char buf[200];
-                    strncpy(buf, s, sizeof(buf));
-                    int len = strlen(buf);
-                    if (len > 0 && buf[len-1] == '"') buf[len-1] = '\0';
-                    msg = buf;
+                    strncpy(msg, s, sizeof(msg));
+                    int len = strlen(msg);
+                    if (len > 0 && msg[len-1] == '"') msg[len-1] = '\0';
                 }
                 fprintf(f, "printf(\"%s: \"); scanf(\"%%d\", &%s);\n", msg, n->valor_cadena);
             } else {
@@ -208,7 +199,6 @@ void generar_codigo(Nodo* ast, const char* archivo_salida) {
 
     fprintf(f, "#include <stdio.h>\n#include <stdlib.h>\n\n");
 
-    /* Generar prototipos */
     for (int i = 0; i < num_funciones; i++) {
         Funcion* fn = &tabla_funciones[i];
         fprintf(f, "int %s(", fn->nombre);
@@ -220,7 +210,6 @@ void generar_codigo(Nodo* ast, const char* archivo_salida) {
     }
     fprintf(f, "\n");
 
-    /* Generar funciones */
     for (int i = 0; i < num_funciones; i++) {
         Funcion* fn = &tabla_funciones[i];
         fprintf(f, "int %s(", fn->nombre);
@@ -233,7 +222,6 @@ void generar_codigo(Nodo* ast, const char* archivo_salida) {
         fprintf(f, "    return 0;\n}\n\n");
     }
 
-    /* main */
     fprintf(f, "int main() {\n");
     if (ast && ast->tipo == NODO_PROGRAMA)
         gen_lista(ast->izq, f, 1);
