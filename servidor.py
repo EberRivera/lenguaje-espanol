@@ -17,6 +17,23 @@ class CompiladorHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             with open('index.html', 'rb') as f:
                 self.wfile.write(f.read())
+            return
+            
+        # Servir archivos estaticos (como el logo)
+        filepath = self.path.lstrip('/')
+        if os.path.exists(filepath) and os.path.isfile(filepath):
+            self.send_response(200)
+            if filepath.endswith('.jpeg') or filepath.endswith('.jpg'):
+                self.send_header('Content-type', 'image/jpeg')
+            elif filepath.endswith('.png'):
+                self.send_header('Content-type', 'image/png')
+            else:
+                self.send_header('Content-type', 'application/octet-stream')
+            self.end_headers()
+            with open(filepath, 'rb') as f:
+                self.wfile.write(f.read())
+        else:
+            self.send_error(404, 'File not found')
 
     def do_POST(self):
         length = int(self.headers['Content-Length'])
