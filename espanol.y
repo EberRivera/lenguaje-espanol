@@ -193,6 +193,25 @@ asignacion:
         n->der = $3;
         $$ = n;
     }
+    | ID ASIGN ID LPAREN argumentos RPAREN PUNTOCOMA
+    {
+        Nodo* call = crear_nodo(NODO_LLAMADA);
+        call->valor_cadena = strdup($3);
+        call->izq = $5;
+        Nodo* n = crear_nodo(NODO_ASIGNACION);
+        n->valor_cadena = strdup($1);
+        n->der = call;
+        $$ = n;
+    }
+    | ID ASIGN ID LPAREN RPAREN PUNTOCOMA
+    {
+        Nodo* call = crear_nodo(NODO_LLAMADA);
+        call->valor_cadena = strdup($3);
+        Nodo* n = crear_nodo(NODO_ASIGNACION);
+        n->valor_cadena = strdup($1);
+        n->der = call;
+        $$ = n;
+    }
     | ID ASIGN expresion error
     {
         printf("\033[1;33mSugerencia: falta ; despues de la asignacion de %s\033[0m\n", $1);
