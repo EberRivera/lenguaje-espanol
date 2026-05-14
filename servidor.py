@@ -5,12 +5,37 @@ import json
 import os
 import tempfile
 import re
+import glob
 
 class CompiladorHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
     def do_GET(self):
+        # Lista de archivos .es
+        if self.path == '/ejemplos':
+            archivos = sorted([f for f in glob.glob('*.es') if os.path.isfile(f)])
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'archivos': archivos}).encode())
+            return
+
+        # Servir archivo .es especifico
+        if self.path.startswith('/archivo/'):
+            nombre = self.path.replace('/archivo/', '')
+            if os.path.exists(nombre) and nombre.endswith('.es'):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                with open(nombre, 'rb') as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404)
+            return
+
+        # Pagina principal
         if self.path == '/' or self.path == '/index.html':
             self.send_response(200)
             self.send_header('Content-type', 'text/html; charset=utf-8')
@@ -18,8 +43,8 @@ class CompiladorHandler(http.server.BaseHTTPRequestHandler):
             with open('index.html', 'rb') as f:
                 self.wfile.write(f.read())
             return
-            
-        # Servir archivos estaticos (como el logo)
+
+        # Archivos estaticos (logo, etc)
         filepath = self.path.lstrip('/')
         if os.path.exists(filepath) and os.path.isfile(filepath):
             self.send_response(200)
@@ -49,15 +74,12 @@ class CompiladorHandler(http.server.BaseHTTPRequestHandler):
 
         try:
             if modo == 'compilar':
-                # Generar codigo C y ejecutable
                 result = subprocess.run(
                     ['./espanol', tmp.name, '-c'],
                     capture_output=True, text=True, timeout=10,
                     cwd=os.path.dirname(os.path.abspath(__file__))
                 )
                 salida = result.stdout + result.stderr
-
-                # Intentar correr el ejecutable generado
                 exe = tmp.name.replace('.es', '')
                 if os.path.exists(exe):
                     result2 = subprocess.run(
@@ -91,6 +113,12 @@ class CompiladorHandler(http.server.BaseHTTPRequestHandler):
             os.unlink(tmp.name)
 
         salida = re.sub(r'\033\[[0-9;]*m', '', salida)
+        
+        # Detectar si faltan entradas
+        num_ingresar = codigo.lower().count('ingresar(')
+        num_entradas = len([e for e in entradas.split('\n') if e.strip()])
+        if num_ingresar > 0 and num_entradas < num_ingresar:
+            salida = f"⚠ Este programa tiene {num_ingresar} Ingresar() pero solo recibio {num_entradas} valor(es) en STDIN.\n\n" + salida
 
         self.send_response(200)
         self.send_header('Content-type', 'application/json')

@@ -558,15 +558,8 @@
     <input type="file" id="fileInput" style="display: none;" accept=".esp,.txt" onchange="cargarCodigo(event)">
     <div class="divider"></div>
     <span class="ex-label">ejemplos:</span>
-    <select class="ex-select" onchange="if(this.value) { load(this.value); this.selectedIndex=0; }">
-      <option value="" disabled selected>-- Elige un programa --</option>
-      <option value="hola">Hola mundo</option>
-      <option value="si">Condicional Si/Sino</option>
-      <option value="loop">Bucle Mientras</option>
-      <option value="func">Función</option>
-      <option value="arr">Arreglo</option>
-      <option value="input">Función Ingresar</option>
-      <option value="err">Error de sintaxis</option>
+    <select class="ex-select" id="selectEjemplos" onchange="cargarEjemploServidor(this.value)">
+      <option value="" disabled selected>-- Cargando... --</option>
     </select>
   </div>
 
@@ -610,20 +603,35 @@
   </div>
 
   <script>
-    const EX = {
-      hola: { c: `Programa holamundo(){\n    Imprimir("Hola mundo desde el lenguaje Espanol");\n}`, i: '' },
-      si: { c: `Programa comparar(){\n    entero a;\n    entero b;\n    a=10;\n    b=5;\n    si (a>b){\n        Imprimir("a es mayor: ". a);\n    }delocontrario{\n        Imprimir("b es mayor: ". b);\n    }\n}`, i: '' },
-      loop: { c: `Programa contar(){\n    entero i;\n    i=0;\n    mientras (i<5){\n        Imprimir("iter ". i);\n        i=i+1;\n    }\n}`, i: '' },
-      func: { c: `entero mayor(entero a, entero b, entero c){\n    si (a>b y a>c){\n        retornar(a);\n    }\n    si (b>a y b>c){\n        retornar(b);\n    }\n    retornar(c);\n}\n\nPrograma prueba(){\n    entero r;\n    r=mayor(10, 12, 1);\n    Imprimir("El mayor es: ". r);\n}`, i: '' },
-      arr: { c: `Programa arreglos(){\n    entero nums[5];\n    entero i;\n    nums[0]=10;\n    nums[1]=20;\n    nums[2]=30;\n    i=0;\n    mientras (i<3){\n        Imprimir("nums[". i ."] = ". nums[i]);\n        i=i+1;\n    }\n}`, i: '' },
-      input: { c: `Programa sumar(){\n    entero a;\n    entero b;\n    entero r;\n    a=Ingresar("Primer numero");\n    b=Ingresar("Segundo numero");\n    r=a+b;\n    Imprimir("Suma: ". r);\n    si (a>b){\n        Imprimir("Mayor: ". a);\n    }delocontrario{\n        Imprimir("Mayor: ". b);\n    }\n}`, i: '20\n80' },
-      err: { c: `Programa conError(){\n    entero a\n    entero b;\n    a=5;\n}`, i: '' }
-    };
+    async function cargarEjemploServidor(archivo) {
+      if (!archivo) return;
+      try {
+        const res = await fetch('/archivo/' + archivo);
+        const codigo = await res.text();
+        document.getElementById('editor').value = codigo;
+        document.getElementById('entradas').value = '';
+        onEdit();
+      } catch(e) {
+        console.error('Error cargando archivo:', e);
+      }
+      document.getElementById('selectEjemplos').selectedIndex = 0;
+    }
 
-    function load(k) {
-      document.getElementById('editor').value = EX[k].c;
-      document.getElementById('entradas').value = EX[k].i;
-      onEdit();
+    async function cargarListaEjemplos() {
+      try {
+        const res = await fetch('/ejemplos');
+        const data = await res.json();
+        const select = document.getElementById('selectEjemplos');
+        select.innerHTML = '<option value="" disabled selected>-- Elige un programa --</option>';
+        data.archivos.forEach(archivo => {
+          const option = document.createElement('option');
+          option.value = archivo;
+          option.textContent = archivo.replace('.es', '');
+          select.appendChild(option);
+        });
+      } catch(e) {
+        console.error('Error cargando ejemplos:', e);
+      }
     }
 
     function syncScroll() {
@@ -737,8 +745,9 @@
     }
 
     async function compilarC() {
-      const codigo = document.getElementById('editor').value.trim();
-      if (!codigo) return;
+      const codigoRaw = document.getElementById('editor').value.trim();
+      if (!codigoRaw) return;
+      const codigo = normalizarCodigo(codigoRaw);
       const entradasRaw = document.getElementById('entradas').value;
       const entradas = entradasRaw.replace(/ +/g, '\n');
 
@@ -762,9 +771,17 @@
       }
     }
 
+    function normalizarCodigo(codigo) {
+      return codigo
+        .replace(/\bprograma\b/gi, 'Programa')
+        .replace(/\bimprimir\b/gi, 'Imprimir')
+        .replace(/\bingresar\b/gi, 'Ingresar');
+    }
+
     async function compilar() {
-      const codigo = document.getElementById('editor').value.trim();
-      if (!codigo) return;
+      const codigoRaw = document.getElementById('editor').value.trim();
+      if (!codigoRaw) return;
+      const codigo = normalizarCodigo(codigoRaw);
       const entradasRaw = document.getElementById('entradas').value;
       const entradas = entradasRaw.replace(/ +/g, '\n');
 
@@ -810,6 +827,7 @@
     });
 
     onEdit();
+    cargarListaEjemplos();
   </script>
 </body>
 
