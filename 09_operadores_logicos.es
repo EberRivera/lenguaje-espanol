@@ -11,7 +11,7 @@ Programa logica(){
     si (b<a o b<c){
         Imprimir("b es menor que alguno");
     }
-    si (no (a==b)){
+    si (a!=b){
         Imprimir("a y b son diferentes");
     }
 }
